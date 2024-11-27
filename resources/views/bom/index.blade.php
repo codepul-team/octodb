@@ -115,7 +115,11 @@
                                     price: item.part.price || "N/A",
                                     quantity: item.part.quantity || 0
                                 }));
-                                asyncResults(results);
+                                asyncResults([results]);
+                                /*alert('heel');
+
+                                console.log('Asharab');
+                                console.log(results);*/
                             } else {
                                 asyncResults([]);
                             }
@@ -129,6 +133,28 @@
                             $('.typeahead').removeClass('loading');
                         }
                     });
+                },
+                display: 'name',
+                templates: {
+                   /* suggestion: function (data) {
+                        console.log(data);
+                        return `
+                        <div>
+                            <strong>${data.name}</strong>
+                        </div>
+                    `;
+                    }*/
+                    suggestion: function (data) {
+                        // Example: Assuming `data.names` is an array of multiple names
+                       console.log("Suggestion Data:", data);
+                        return data.map(item => {
+                            return `
+                                    <div>
+                                        <strong>${item.name}</strong>
+                                    </div>
+                                `;
+                        }).join('');
+                    }
                 }
             }).on('typeahead:select', function(event, selection) {
                 // Check for duplicate entries

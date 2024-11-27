@@ -83,6 +83,7 @@ class BomController extends Controller
                 );
             }
         } catch (Exception $e) {
+           // dd($e->getMessage());
             return $this->error('Failed to fetch data from Search API');
         }
     }
