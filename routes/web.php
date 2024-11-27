@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BomController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GenerateToken;
 
@@ -18,5 +19,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/', [GenerateToken::class,'generateToken']);
+// Route::get('/', [GenerateToken::class,'generateToken']);
 Route::get('/graphql', [GenerateToken::class, 'sendGraphQLRequest']);
+
+Route::group(['prefix' => 'bom'], function () {
+    Route::get('/', [BomController::class, 'index']);
+    Route::get('search-mpn', [BomController::class, 'searchMpn']);
+});
