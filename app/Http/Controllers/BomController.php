@@ -45,6 +45,63 @@ class BomController extends Controller
 
         try {
             $query = <<<GRAPHQL
+            query BasicMPNSearch {
+                supSearchMpn (
+                    q: "$request->mpn"
+                    limit: 2
+                ){
+                    hits
+                    results {
+                        part {
+                            id
+                            name
+                            mpn
+                            shortDescription
+                            manufacturer {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+            
+            GRAPHQL;
+            $response = $this->access_token_service->postHttp($query,'graphql');
+
+            if ($response) {
+                return  $this->success(
+                    'Success',
+                    $response,
+                    false
+                );
+            }
+        } catch (Exception $e) {
+           // dd($e->getMessage());
+            return $this->error('Failed to fetch data from Search API');
+        }
+    }
+
+    public function getData(Request $request){
+        $validation = Validator::make(
+            $request->all(),
+            [
+                'mpn' => 'required'
+            ],
+            $this->validationMessage()
+        );
+
+        if ($validation->fails()) {
+            $validation_error = "";
+            foreach ($validation->errors()->all() as $message) {
+                $validation_error .= $message;
+            }
+            return $this->validationResponse(
+                $validation_error
+            );
+        }
+
+        // try {
+            $query = <<<GRAPHQL
             query partSearch {
             supSearch(
                 q: "$request->mpn",
@@ -73,18 +130,34 @@ class BomController extends Controller
             }
             }
             GRAPHQL;
-            $response = $this->access_token_service->postHttp($query,'graphql');
+            $data=[];
+            $part_search = $this->access_token_service->postHttp($query,'graphql');
+            $parts = $part_search['data']['supSearch']['results'];
+            foreach($parts as $item){
+                $data[]=[
+                    "part_id"=>$item['part']['id']??'',
+                    "part_name"=>$item['part']['name']??'',
+                    "part_npm"=>$item['part']['npm']??'',
+                    "category_id"=>$item['part']['category']['id']??'',
+                    "category_name"=>$item['part']['category']['name']??'',
+                    "manufacturer_name"=>$item['part']['manufacturer']['name']??'',
+                    "manufacturer_url"=>$item['part']['manufacturer']['homepageUrl']??'',
+                    "medianPrice1000_qty"=>$item['part']['medianPrice1000']['quantity']??0,
+                    "medianPrice1000_currency"=>$item['part']['medianPrice1000']['currency']??'',
+                ];
+            }
+            
 
-            if ($response) {
+            if ($data) {
                 return  $this->success(
                     'Success',
-                    $response,
+                    $data,
                     false
                 );
             }
-        } catch (Exception $e) {
-           // dd($e->getMessage());
-            return $this->error('Failed to fetch data from Search API');
-        }
+        // } catch (Exception $e) {
+        //    // dd($e->getMessage());
+        //     return $this->error('Failed to fetch data from Search API');
+        // }
     }
 }

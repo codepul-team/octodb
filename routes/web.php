@@ -25,4 +25,5 @@ Route::get('/graphql', [GenerateToken::class, 'sendGraphQLRequest']);
 Route::group(['prefix' => 'bom'], function () {
     Route::get('/', [BomController::class, 'index']);
     Route::get('search-mpn', [BomController::class, 'searchMpn']);
+    Route::get('get-data', [BomController::class, 'getData']);
 });

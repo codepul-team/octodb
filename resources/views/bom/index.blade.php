@@ -10,10 +10,14 @@
     <style>
         /* Custom Typeahead Styles to avoid conflicts */
         .tt-menu {
-            width: 100% !important; /* Ensure dropdown spans full width of the input */
-            max-height: 300px; /* Limit height for long lists */
-            overflow-y: auto; /* Add scrollbar if items exceed max-height */
-            z-index: 9999; /* Ensure dropdown is on top of other elements */
+            width: 100% !important;
+            /* Ensure dropdown spans full width of the input */
+            max-height: 300px;
+            /* Limit height for long lists */
+            overflow-y: auto;
+            /* Add scrollbar if items exceed max-height */
+            z-index: 9999;
+            /* Ensure dropdown is on top of other elements */
         }
 
         .tt-suggestion {
@@ -29,7 +33,6 @@
         .typeahead.loading {
             background: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css') center no-repeat !important;
         }
-
     </style>
 </head>
 
@@ -108,12 +111,13 @@
                         },
                         success: function(data) {
                             console.log(data.Data.data);
-                            if (data && data.Data && data.Data.data && data.Data.data.supSearch) {
-                                const results = data.Data.data.supSearch.results.map(item => ({
-                                    id: item.part.mpn,
-                                    name: item.part.mpn,
-                                    price: item.part.price || "N/A",
-                                    quantity: item.part.quantity || 0
+                            if (data && data.Data && data.Data.data && data.Data.data.supSearchMpn) {
+                                const results = data.Data.data.supSearchMpn.results.map(item => ({
+                                    id: item.part.id,
+                                    part: item.part.name,
+                                    mpn: item.part.mpn,
+                                    part_description: item.part.shortDescription || 'No description available',
+                                    manufacturer: item.part.manufacturer.name || 'No manufecture available'
                                 }));
                                 asyncResults([results]);
                                 /*alert('heel');
@@ -136,21 +140,21 @@
                 },
                 display: 'name',
                 templates: {
-                   /* suggestion: function (data) {
-                        console.log(data);
-                        return `
-                        <div>
-                            <strong>${data.name}</strong>
-                        </div>
-                    `;
-                    }*/
-                    suggestion: function (data) {
+                    /* suggestion: function (data) {
+                         console.log(data);
+                         return `
+                         <div>
+                             <strong>${data.name}</strong>
+                         </div>
+                     `;
+                     }*/
+                    suggestion: function(data) {
                         // Example: Assuming `data.names` is an array of multiple names
-                       console.log("Suggestion Data:", data);
+                        console.log("Suggestion Data:", data);
                         return data.map(item => {
                             return `
                                     <div>
-                                        <strong>${item.name}</strong>
+                                        <strong>${item.mpn}</strong>
                                     </div>
                                 `;
                         }).join('');
@@ -158,36 +162,37 @@
                 }
             }).on('typeahead:select', function(event, selection) {
                 // Check for duplicate entries
-                if ($(`#dom-details tr:contains(${selection.id})`).length > 0) {
+                if ($(`#dom-details tr:contains(${selection.mpn})`).length > 0) {
                     alert("This item is already added!");
                     return;
                 }
-
+                var data = getData(selection.mpn);
                 // Append selected data to the table
                 const selectedData = `
                 <tr>
                     <td><button class="btn btn-danger btn-sm remove-row">Remove</button></td>
                     <td>${$('#dom-details tr').length + 1}</td>
-                    <td>${selection.name}</td>
-                    <td>${selection.quantity}</td>
-                    <td></td>
-                    <td></td>
-                    <td>${selection.name}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>${selection.price}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>${selection.mpn}</td>
+                    <td><input type="number" value="1" name="qty" id="qty"></td>
+                    <td>Yes</td>
+                    <td>${selection.part}</td>
+                    <td>${selection.part_description}</td>
+                    <td><input type="text" value="" name="description" id="description"></td>
+                    <td><input type="text" value="" name="schematic_reference" id="schematic_reference"></td>
+                    <td><input type="text" value="" name="internal_part_no" id="internal_part_no"></td>
+                    <td>Production</td>
+                    <td>15w</td>
+                    <td>Compliant</td>
+                    <td>Price:4.540, Stock:47088, Tube </td>
+                    <td>Price:4.210, Stock:0, Bulk </td>
+                    <td>Price:3.350, Stock:4145 </td>
+                    <td>Price:3.270, Stock:20, Bulk </td>
+                    <td>-</td>
+                    <td>DigiKey</td>
+                    <td>4.540</td>
+                    <td>4.540</td>
+                    <td>4.540</td>
+                    <td><input type="text" value="" name="note" id="note"></td>
                 </tr>
             `;
                 $('#dom-details').append(selectedData);
@@ -198,6 +203,27 @@
                 $(this).closest('tr').remove();
             });
         });
+
+        function getData(query) {
+            $.ajax({
+                url: "{{ url('bom/get-data') }}",
+                type: 'GET',
+                data: {
+                    mpn: query
+                },
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                beforeSend: function() {
+                    $('.typeahead').addClass('loading');
+                },
+                success: function(data) {
+                    var data = data.Data;
+                    console.log("getData",data);
+                }
+            });
+        }
     </script>
 
 </body>
