@@ -45,29 +45,75 @@ class BomController extends Controller
 
         try {
             $query = <<<GRAPHQL
-            query BasicMPNSearch {
-                supSearchMpn (
-                    q: "$request->mpn"
-                    limit: 2
-                ){
-                    hits
-                    results {
-                        part {
-                            id
-                            name
-                            mpn
-                            shortDescription
-                            manufacturer {
-                                name
-                            }
-                        }
+            query partSearch {
+            supSearch(q: "$request->mpn", limit: 5) {
+                hits
+                results {
+                part {
+                    id
+                    mpn
+                    name
+                    shortDescription
+                    estimatedFactoryLeadDays
+                    sellers {
+                    company {
+                        id
+                        name
+                        homepageUrl
+                        isOctocartSupported
+                        isVerified
+                        isDistributorApi
                     }
+                    offers {
+                        id
+                        inventoryLevel
+                        moq
+                        multipackQuantity
+                        onOrderQuantity
+                        orderMultiple
+                        packaging
+                        sku
+                        updated
+                        prices {
+                        conversionRate
+                        convertedCurrency
+                        convertedPrice
+                        currency
+                        price
+                        quantity
+                        }
+                        factoryPackQuantity
+                        factoryLeadDays
+                    }
+                    isAuthorized
+                    isBroker
+                    isRfq
+                    }
+                    specs {
+                    displayValue
+                    siValue
+                    units
+                    unitsName
+                    unitsSymbol
+                    value
+                    valueType
+                    attribute {
+                        group
+                        id
+                        name
+                        shortname
+                        unitsName
+                        unitsSymbol
+                        valueType
+                    }
+                    }
+                    totalAvail
+                }
                 }
             }
-            
+            }
             GRAPHQL;
-            $response = $this->access_token_service->postHttp($query,'graphql');
-
+            $response = $this->access_token_service->postHttp($query, 'graphql');
             if ($response) {
                 return  $this->success(
                     'Success',
@@ -76,12 +122,13 @@ class BomController extends Controller
                 );
             }
         } catch (Exception $e) {
-           // dd($e->getMessage());
+            // dd($e->getMessage());
             return $this->error('Failed to fetch data from Search API');
         }
     }
 
-    public function getData(Request $request){
+    public function getData(Request $request)
+    {
         $validation = Validator::make(
             $request->all(),
             [
@@ -99,62 +146,106 @@ class BomController extends Controller
                 $validation_error
             );
         }
-
+        $variables = [
+            'mpn' => 'LM358N', // Replace with your desired part number
+        ];
         // try {
-            $query = <<<GRAPHQL
-            query partSearch {
-            supSearch(
-                q: "$request->mpn",
-                limit: 5
-            ) {
+
+        $query = <<<GRAPHQL
+            query partDetail {
+            supSearchMpn(q: "913932398", limit: 5) {
                 hits
                 results {
                 part {
+                    _cacheId
+                    akaMpns
+                    avgAvail
+                    cadRequestUrl
+                    counts
+                    estimatedFactoryLeadDays
+                    freeSampleUrl
+                    genericMpn
                     id
-                    name
+                    manufacturerUrl
                     mpn
-                    medianPrice1000 {
-                    quantity
-                    currency
-                    }
-                    category {
-                    id
                     name
+                    octopartUrl
+                    shortDescription
+                    slug
+                    totalAvail
+                    v3uid
+                    extras {
+                    confidence
+                    datasheetUrls
+                    description
+                    isRohsCompliant
+                    lifeCycle
+                    partId
+                    alternatives {
+                        confidence
+                        datasheetUrls
+                        description
+                        isRohsCompliant
+                        lifeCycle
+                        partId
+                        alternatives {
+                        parameters {
+                            name
+                            unit
+                            value
+                        }
+                        }
+                    }
                     }
                     manufacturer {
-                    name
+                    aliases
+                    displayFlag
                     homepageUrl
+                    id
+                    isDistributorApi
+                    isOctocartSupported
+                    isVerified
+                    name
+                    slug
+                    }
+                    sellers {
+                    _cacheId
+                    country
+                    isAuthorized
+                    isBroker
+                    isRfq
                     }
                 }
                 }
             }
             }
             GRAPHQL;
-            $data=[];
-            $part_search = $this->access_token_service->postHttp($query,'graphql');
-            $parts = $part_search['data']['supSearch']['results'];
-            foreach($parts as $item){
-                $data[]=[
-                    "part_id"=>$item['part']['id']??'',
-                    "part_name"=>$item['part']['name']??'',
-                    "part_npm"=>$item['part']['npm']??'',
-                    "category_id"=>$item['part']['category']['id']??'',
-                    "category_name"=>$item['part']['category']['name']??'',
-                    "manufacturer_name"=>$item['part']['manufacturer']['name']??'',
-                    "manufacturer_url"=>$item['part']['manufacturer']['homepageUrl']??'',
-                    "medianPrice1000_qty"=>$item['part']['medianPrice1000']['quantity']??0,
-                    "medianPrice1000_currency"=>$item['part']['medianPrice1000']['currency']??'',
-                ];
-            }
-            
+        $data = [];
+        $part_search = $this->access_token_service->postHttp($query, 'graphql');
+        dd($part_search);
+        $parts = $part_search['data']['supSearch']['results'];
+        foreach ($parts as $item) {
+            $data[] = [
+                "part_id" => $item['part']['id'] ?? '',
+                "part_name" => $item['part']['name'] ?? '',
+                "part_npm" => $item['part']['npm'] ?? '',
+                "category_id" => $item['part']['category']['id'] ?? '',
+                "category_name" => $item['part']['category']['name'] ?? '',
+                "manufacturer_name" => $item['part']['manufacturer']['name'] ?? '',
+                "manufacturer_url" => $item['part']['manufacturer']['homepageUrl'] ?? '',
+                "medianPrice1000_qty" => $item['part']['medianPrice1000']['quantity'] ?? 0,
+                "medianPrice1000_currency" => $item['part']['medianPrice1000']['currency'] ?? '',
+            ];
+        }
 
-            if ($data) {
-                return  $this->success(
-                    'Success',
-                    $data,
-                    false
-                );
-            }
+
+        if ($data) {
+            return  $this->success(
+                'Success',
+                $data,
+                false
+            );
+        }
         // } catch (Exception $e) {
         //    // dd($e->getMessage());
         //     return $this->error('Failed to fetch data from Search API');

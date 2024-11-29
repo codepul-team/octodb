@@ -93,7 +93,7 @@
             $('.typeahead').typeahead({
                 highlight: true, // Highlights matching words
                 minLength: 3, // Start after 3 characters
-                items: 10, // Maximum suggestions shown
+                limit: 100,
             }, {
                 source: function(query, syncResults, asyncResults) {
                     $.ajax({
@@ -111,13 +111,17 @@
                         },
                         success: function(data) {
                             console.log(data.Data.data);
-                            if (data && data.Data && data.Data.data && data.Data.data.supSearchMpn) {
-                                const results = data.Data.data.supSearchMpn.results.map(item => ({
+                            if (data && data.Data && data.Data.data && data.Data.data.supSearch) {
+                                const results = data.Data.data.supSearch.results.map(item => ({
                                     id: item.part.id,
                                     part: item.part.name,
                                     mpn: item.part.mpn,
                                     part_description: item.part.shortDescription || 'No description available',
-                                    manufacturer: item.part.manufacturer.name || 'No manufecture available'
+                                    lifecycle: 'Production',
+                                    lead_time: item.part.estimatedFactoryLeadDays / 7 + 'w' || '0w',
+                                    rohs: 'Compliant',
+                                    sellers: item.part.sellers,
+
                                 }));
                                 asyncResults([results]);
                                 /*alert('heel');
@@ -138,16 +142,8 @@
                         }
                     });
                 },
-                display: 'name',
+                display: 'mpn',
                 templates: {
-                    /* suggestion: function (data) {
-                         console.log(data);
-                         return `
-                         <div>
-                             <strong>${data.name}</strong>
-                         </div>
-                     `;
-                     }*/
                     suggestion: function(data) {
                         // Example: Assuming `data.names` is an array of multiple names
                         console.log("Suggestion Data:", data);
@@ -166,7 +162,63 @@
                     alert("This item is already added!");
                     return;
                 }
-                var data = getData(selection.mpn);
+                // Seller detail
+                var digi_key = '';
+                var digi_key_price = 0;
+                var digi_key_stock = 0;
+                var digi_key_packing = '';
+                var mouser = '';
+                var mouser_price = 0;
+                var mouser_stock = 0;
+                var mouser_packing = '';
+                var newark = '';
+                var newark_price = 0;
+                var newark_stock = 0;
+                var newark_packing = '';
+                var online_component = '';
+                var online_component_price = 0;
+                var online_component_stock = 0;
+                var online_component_packing = '';
+                console.log("sellers", selection.sellers);
+                $.each(selection.sellers, function(k, value) {
+                    console.log("company", value);
+                    console.log("offers", value.offers);
+                    console.log("prices", value.offers.prices);
+                    if (value.offers) {
+                        const companyId = value.company.id || 'N/A';
+                        const companyInfo = value.company.name || 'N/A';
+                        const priceInfo = value.offers[0]?.prices[0]?.price || 0;
+                        const stockInfo = value.offers[0].inventoryLevel || 0;
+                        const packingInfo = value.offers[0].packaging || 'N/A';
+                        if (companyId === '2429') {
+                            online_component = companyInfo;
+                            online_component_price = priceInfo;
+                            online_component_stock = stockInfo;
+                            online_component_packing = packingInfo;
+                        }
+                        if (companyId === '2401') {
+                            mouser = companyInfo;
+                            mouser_price = priceInfo;
+                            mouser_stock = stockInfo;
+                            mouser_packing = packingInfo;
+                        }
+                        if (companyId === '2402') {
+                            newark = companyInfo;
+                            newark_price = priceInfo;
+                            newark_stock = stockInfo;
+                            newark_packing = packingInfo;
+                        }
+                        if (companyId === '459') {
+                            digi_key = companyInfo;
+                            digi_key_price = priceInfo;
+                            digi_key_stock = stockInfo;
+                            digi_key_packing = packingInfo;
+                        }
+                    } else {
+                        console.warn(`Missing offers or prices for seller ID ${companyId}`);
+                    }
+                });
+
                 // Append selected data to the table
                 const selectedData = `
                 <tr>
@@ -180,18 +232,18 @@
                     <td><input type="text" value="" name="description" id="description"></td>
                     <td><input type="text" value="" name="schematic_reference" id="schematic_reference"></td>
                     <td><input type="text" value="" name="internal_part_no" id="internal_part_no"></td>
-                    <td>Production</td>
-                    <td>15w</td>
-                    <td>Compliant</td>
-                    <td>Price:4.540, Stock:47088, Tube </td>
-                    <td>Price:4.210, Stock:0, Bulk </td>
-                    <td>Price:3.350, Stock:4145 </td>
-                    <td>Price:3.270, Stock:20, Bulk </td>
+                    <td>${selection.lifecycle}</td>
+                    <td>${selection.lead_time}</td>
+                    <td>${selection.rohs}</td>
+                    <td>Price:${digi_key_price}, Stock:${digi_key_stock}, ${digi_key_packing} </td>
+                    <td>Price:${mouser_price}, Stock:${mouser_stock}, ${mouser_packing} </td>
+                    <td>Price:${newark_price}, Stock:${newark_stock}, ${newark_packing} </td>
+                    <td>Price:${online_component_price}, Stock:${online_component_stock}, ${online_component_packing} </td>
                     <td>-</td>
-                    <td>DigiKey</td>
-                    <td>4.540</td>
-                    <td>4.540</td>
-                    <td>4.540</td>
+                    <td>${digi_key}</td>
+                    <td>${digi_key_price}</td>
+                    <td>${digi_key_price}</td>
+                    <td>${digi_key_price}</td>
                     <td><input type="text" value="" name="note" id="note"></td>
                 </tr>
             `;
@@ -220,7 +272,7 @@
                 },
                 success: function(data) {
                     var data = data.Data;
-                    console.log("getData",data);
+                    console.log("getData", data);
                 }
             });
         }
