@@ -33,10 +33,140 @@
         .typeahead.loading {
             background: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css') center no-repeat !important;
         }
+
+        .loading {
+            position: fixed;
+            z-index: 999;
+            height: 2em;
+            width: 2em;
+            overflow: show;
+            margin: auto;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+
+        /* Transparent Overlay */
+        .loading:before {
+            content: '';
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+
+            background: -webkit-radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+        }
+
+        /* :not(:required) hides these rules from IE9 and below */
+        .loading:not(:required) {
+            /* hide "loading..." text */
+            font: 0/0 a;
+            color: transparent;
+            text-shadow: none;
+            background-color: transparent;
+            border: 0;
+        }
+
+        .loading:not(:required):after {
+            content: '';
+            display: block;
+            font-size: 10px;
+            width: 1em;
+            height: 1em;
+            margin-top: -0.5em;
+            -webkit-animation: spinner 150ms infinite linear;
+            -moz-animation: spinner 150ms infinite linear;
+            -ms-animation: spinner 150ms infinite linear;
+            -o-animation: spinner 150ms infinite linear;
+            animation: spinner 150ms infinite linear;
+            border-radius: 0.5em;
+            -webkit-box-shadow: rgba(255, 255, 255, 0.75) 1.5em 0 0 0, rgba(255, 255, 255, 0.75) 1.1em 1.1em 0 0, rgba(255, 255, 255, 0.75) 0 1.5em 0 0, rgba(255, 255, 255, 0.75) -1.1em 1.1em 0 0, rgba(255, 255, 255, 0.75) -1.5em 0 0 0, rgba(255, 255, 255, 0.75) -1.1em -1.1em 0 0, rgba(255, 255, 255, 0.75) 0 -1.5em 0 0, rgba(255, 255, 255, 0.75) 1.1em -1.1em 0 0;
+            box-shadow: rgba(255, 255, 255, 0.75) 1.5em 0 0 0, rgba(255, 255, 255, 0.75) 1.1em 1.1em 0 0, rgba(255, 255, 255, 0.75) 0 1.5em 0 0, rgba(255, 255, 255, 0.75) -1.1em 1.1em 0 0, rgba(255, 255, 255, 0.75) -1.5em 0 0 0, rgba(255, 255, 255, 0.75) -1.1em -1.1em 0 0, rgba(255, 255, 255, 0.75) 0 -1.5em 0 0, rgba(255, 255, 255, 0.75) 1.1em -1.1em 0 0;
+        }
+
+        /* Animation */
+
+        @-webkit-keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+
+        @-moz-keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+
+        @-o-keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+                -moz-transform: rotate(0deg);
+                -ms-transform: rotate(0deg);
+                -o-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -ms-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
     </style>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" />
 </head>
 
 <body>
+    <div class="loading" style="display: none;">Loading&#8230;</div>
     <div class="container-fluid mt-4">
         <div class="row">
             <div class="col-md-4">
@@ -46,12 +176,12 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row mt-3">
             <div class="col-md-12">
                 <div class="table-responsive">
-                    <table style="min-height: 200px;" class="table table-striped table-hover mt-3">
+                    <table style="min-height: 200px;" class="table table-striped table-hover">
                         <thead>
-                            <tr>
+                            <tr class="table-primary">
                                 <th>Action</th>
                                 <th>Sr.</th>
                                 <th>Query</th>
@@ -79,6 +209,14 @@
                         </thead>
                         <tbody id="dom-details"></tbody>
                     </table>
+                </div>
+            </div>
+            <div class="col-md-12 mt-2">
+                <div class="form-group text-center">
+                    <button id="submit" class="btn btn-primary p-2" style="width: 20%;
+    height: 60px;
+    font-weight: bold;
+    font-size: 20px;">Save Data</button>
                 </div>
             </div>
         </div>
@@ -157,6 +295,7 @@
                     }
                 }
             }).on('typeahead:select', function(event, selection) {
+                $(".loading").show();
                 // Check for duplicate entries
                 if ($(`#dom-details tr:contains(${selection.mpn})`).length > 0) {
                     alert("This item is already added!");
@@ -218,11 +357,10 @@
                         console.warn(`Missing offers or prices for seller ID ${companyId}`);
                     }
                 });
-
                 // Append selected data to the table
                 const selectedData = `
                 <tr>
-                    <td><button class="btn btn-danger btn-sm remove-row">Remove</button></td>
+                    <td><a class="text-danger remove-row"><i class="fa fa-trash"></i></a><input type="checkbox" class="row-checkbox"></td>
                     <td>${$('#dom-details tr').length + 1}</td>
                     <td>${selection.mpn}</td>
                     <td><input type="number" value="1" name="qty" id="qty"></td>
@@ -248,6 +386,8 @@
                 </tr>
             `;
                 $('#dom-details').append(selectedData);
+
+                $(".loading").hide();
             });
 
             // Remove row functionality
@@ -276,6 +416,79 @@
                 }
             });
         }
+
+        $("body").on("click", "#submit", function(e) {
+            e.preventDefault();
+
+            $(".loading").show();
+            // Validation logic
+
+            if ($('#dom-details tr').length == 0) {
+                alert("Add row first!");
+                $(".loading").hide();
+                return false;
+            }
+
+            var productData = [];
+
+            $('#dom-details tr').each(function() {
+                let isChecked = $(this).find('.row-checkbox').is(':checked');
+
+                if (isChecked) {
+
+                    productData.push({
+                        query: $(this).find('td:eq(2)').text(),
+                        qty: $(this).find('#qty').val(),
+                        is_match: 1,
+                        part: $(this).find('td:eq(5)').text(),
+                        part_description: $(this).find('td:eq(6)').text(),
+                        description: $(this).find('#description').val(),
+                        schematic_reference: $(this).find('#schematic_reference').val(),
+                        internal_part_no: $(this).find('#internal_part_no').val(),
+                        lifecycle: $(this).find('td:eq(10)').text(),
+                        lead_time: $(this).find('td:eq(11)').text(),
+                        rohs: $(this).find('td:eq(12)').text(),
+                        digi_key: $(this).find('td:eq(13)').text(),
+                        mouser: $(this).find('td:eq(14)').text(),
+                        newark: $(this).find('td:eq(15)').text(),
+                        online_component: $(this).find('td:eq(16)').text(),
+                        rs_component: $(this).find('td:eq(17)').text(),
+                        distributor: $(this).find('td:eq(18)').text(),
+                        unit_price: $(this).find('td:eq(19)').text(),
+                        line_total: $(this).find('td:eq(20)').text(),
+                        bacth_total: $(this).find('td:eq(21)').text(),
+                        note: $(this).find('#note').val()
+                    });
+                }
+            });
+
+            $.ajax({
+                url: "{{url('bom/store')}}", // Laravel route
+                type: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+                },
+                data: productData,
+                processData: false, // Important for file uploads
+                contentType: false, // Important for file uploads
+                dataType: "json",
+                success: function(data) {
+                    if (data.Success) {
+                        alert(data.Message);
+                        $(".loading").hide();
+                        $("#submit").prop("disabled", true);
+                        $('#dom-details').empty();
+                    } else {
+                        alert(data.Message);
+                        $(".loading").hide();
+                    }
+                },
+                error: function(xhr, status, e) {
+                    alert("An error occurred:");
+                    $(".loading").hide();
+                },
+            });
+        });
     </script>
 
 </body>

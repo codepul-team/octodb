@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bom;
 use App\Services\AccessTokenService;
 use App\Traits\JsonResponse;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class BomController extends Controller
@@ -127,12 +129,32 @@ class BomController extends Controller
         }
     }
 
-    public function getData(Request $request)
+    public function store(Request $request)
     {
         $validation = Validator::make(
             $request->all(),
             [
-                'mpn' => 'required'
+                '*.query' => 'required|string',
+                '*.qty' => 'required|numeric',
+                '*.is_match' => 'required|boolean',
+                '*.part' => 'nullable|string',
+                '*.part_description' => 'nullable|string',
+                '*.description' => 'nullable|string',
+                '*.schematic_reference' => 'nullable|string',
+                '*.internal_part_no' => 'nullable|string',
+                '*.lifecycle' => 'nullable|string',
+                '*.lead_time' => 'nullable|string',
+                '*.rohs' => 'nullable|string',
+                '*.digi_key' => 'nullable|string',
+                '*.mouser' => 'nullable|string',
+                '*.newark' => 'nullable|string',
+                '*.online_component' => 'nullable|string',
+                '*.rs_component' => 'nullable|string',
+                '*.distributor' => 'nullable|string',
+                '*.unit_price' => 'nullable|numeric',
+                '*.line_total' => 'nullable|numeric',
+                '*.bacth_total' => 'nullable|numeric',
+                '*.note' => 'nullable|string',
             ],
             $this->validationMessage()
         );
@@ -146,109 +168,22 @@ class BomController extends Controller
                 $validation_error
             );
         }
-        $variables = [
-            'mpn' => 'LM358N', // Replace with your desired part number
-        ];
-        // try {
+        try {
+            DB::beginTransaction();
 
-        $query = <<<GRAPHQL
-            query partDetail {
-            supSearchMpn(q: "913932398", limit: 5) {
-                hits
-                results {
-                part {
-                    _cacheId
-                    akaMpns
-                    avgAvail
-                    cadRequestUrl
-                    counts
-                    estimatedFactoryLeadDays
-                    freeSampleUrl
-                    genericMpn
-                    id
-                    manufacturerUrl
-                    mpn
-                    name
-                    octopartUrl
-                    shortDescription
-                    slug
-                    totalAvail
-                    v3uid
-                    extras {
-                    confidence
-                    datasheetUrls
-                    description
-                    isRohsCompliant
-                    lifeCycle
-                    partId
-                    alternatives {
-                        confidence
-                        datasheetUrls
-                        description
-                        isRohsCompliant
-                        lifeCycle
-                        partId
-                        alternatives {
-                        parameters {
-                            name
-                            unit
-                            value
-                        }
-                        }
-                    }
-                    }
-                    manufacturer {
-                    aliases
-                    displayFlag
-                    homepageUrl
-                    id
-                    isDistributorApi
-                    isOctocartSupported
-                    isVerified
-                    name
-                    slug
-                    }
-                    sellers {
-                    _cacheId
-                    country
-                    isAuthorized
-                    isBroker
-                    isRfq
-                    }
-                }
-                }
+            foreach ($validation as $data) {
+                Bom::create($data);
             }
-            }
-            GRAPHQL;
-        $data = [];
-        $part_search = $this->access_token_service->postHttp($query, 'graphql');
-        dd($part_search);
-        $parts = $part_search['data']['supSearch']['results'];
-        foreach ($parts as $item) {
-            $data[] = [
-                "part_id" => $item['part']['id'] ?? '',
-                "part_name" => $item['part']['name'] ?? '',
-                "part_npm" => $item['part']['npm'] ?? '',
-                "category_id" => $item['part']['category']['id'] ?? '',
-                "category_name" => $item['part']['category']['name'] ?? '',
-                "manufacturer_name" => $item['part']['manufacturer']['name'] ?? '',
-                "manufacturer_url" => $item['part']['manufacturer']['homepageUrl'] ?? '',
-                "medianPrice1000_qty" => $item['part']['medianPrice1000']['quantity'] ?? 0,
-                "medianPrice1000_currency" => $item['part']['medianPrice1000']['currency'] ?? '',
-            ];
-        }
+            DB::commit();
+        } catch (Exception $e) {
 
-
-        if ($data) {
-            return  $this->success(
-                'Success',
-                $data,
-                false
-            );
+            DB::rollback();
+            return $this->error('Data not save!');
         }
-        // } catch (Exception $e) {
-        //    // dd($e->getMessage());
-        //     return $this->error('Failed to fetch data from Search API');
-        // }
+        return  $this->success(
+            'Data Saved!',
+            [],
+            true
+        );
     }
 }
