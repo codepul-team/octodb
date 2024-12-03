@@ -131,8 +131,9 @@ class BomController extends Controller
 
     public function store(Request $request)
     {
+        $data = json_decode($request->getContent(), true);
         $validation = Validator::make(
-            $request->all(),
+            $data,
             [
                 '*.query' => 'required|string',
                 '*.qty' => 'required|numeric',
@@ -170,9 +171,11 @@ class BomController extends Controller
         }
         try {
             DB::beginTransaction();
-
-            foreach ($validation as $data) {
-                Bom::create($data);
+            foreach ($data as $value) {
+                $exit = Bom::where('query', $value['query'])->first();
+                if (!$exit) {
+                    Bom::create($value);
+                }
             }
             DB::commit();
         } catch (Exception $e) {
@@ -184,6 +187,16 @@ class BomController extends Controller
             'Data Saved!',
             [],
             true
+        );
+    }
+
+    public function checkExit($query)
+    {
+        $exit = Bom::where('query', $query)->first();
+        return  $this->success(
+            'Success',
+            $exit,
+            false
         );
     }
 }

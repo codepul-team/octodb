@@ -299,6 +299,7 @@
                 // Check for duplicate entries
                 if ($(`#dom-details tr:contains(${selection.mpn})`).length > 0) {
                     alert("This item is already added!");
+                    $(".loading").hide();
                     return;
                 }
                 // Seller detail
@@ -357,37 +358,51 @@
                         console.warn(`Missing offers or prices for seller ID ${companyId}`);
                     }
                 });
-                // Append selected data to the table
-                const selectedData = `
-                <tr>
-                    <td><a class="text-danger remove-row"><i class="fa fa-trash"></i></a><input type="checkbox" class="row-checkbox"></td>
-                    <td>${$('#dom-details tr').length + 1}</td>
-                    <td>${selection.mpn}</td>
-                    <td><input type="number" value="1" name="qty" id="qty"></td>
-                    <td>Yes</td>
-                    <td>${selection.part}</td>
-                    <td>${selection.part_description}</td>
-                    <td><input type="text" value="" name="description" id="description"></td>
-                    <td><input type="text" value="" name="schematic_reference" id="schematic_reference"></td>
-                    <td><input type="text" value="" name="internal_part_no" id="internal_part_no"></td>
-                    <td>${selection.lifecycle}</td>
-                    <td>${selection.lead_time}</td>
-                    <td>${selection.rohs}</td>
-                    <td>Price:${digi_key_price}, Stock:${digi_key_stock}, ${digi_key_packing} </td>
-                    <td>Price:${mouser_price}, Stock:${mouser_stock}, ${mouser_packing} </td>
-                    <td>Price:${newark_price}, Stock:${newark_stock}, ${newark_packing} </td>
-                    <td>Price:${online_component_price}, Stock:${online_component_stock}, ${online_component_packing} </td>
-                    <td>-</td>
-                    <td>${digi_key}</td>
-                    <td>${digi_key_price}</td>
-                    <td>${digi_key_price}</td>
-                    <td>${digi_key_price}</td>
-                    <td><input type="text" value="" name="note" id="note"></td>
-                </tr>
-            `;
-                $('#dom-details').append(selectedData);
+                checkExit(selection.mpn)
+                    .then((exists) => {
+                        console.log(exists ? 'Exists' : 'Does not exist');
+                        // Append selected data to the table
+                        const selectedData = `
+                            <tr>
+                                <td>
+                                    <a class="text-danger remove-row" style="margin-right:10px;">
+                                        <i class="fa fa-trash"></i>
+                                    </a>
+                                    <input type="checkbox" ${exists ? 'checked' : ''} class="row-checkbox">
+                                </td>
+                                <td>${$('#dom-details tr').length + 1}</td>
+                                <td>${selection.mpn}</td>
+                                <td><input type="number" value="1" name="qty" id="qty"></td>
+                                <td>Yes</td>
+                                <td>${selection.part}</td>
+                                <td>${selection.part_description}</td>
+                                <td><input type="text" value="" name="description" id="description"></td>
+                                <td><input type="text" value="" name="schematic_reference" id="schematic_reference"></td>
+                                <td><input type="text" value="" name="internal_part_no" id="internal_part_no"></td>
+                                <td>${selection.lifecycle}</td>
+                                <td>${selection.lead_time}</td>
+                                <td>${selection.rohs}</td>
+                                <td>Price:${digi_key_price}, Stock:${digi_key_stock}, ${digi_key_packing}</td>
+                                <td>Price:${mouser_price}, Stock:${mouser_stock}, ${mouser_packing}</td>
+                                <td>Price:${newark_price}, Stock:${newark_stock}, ${newark_packing}</td>
+                                <td>Price:${online_component_price}, Stock:${online_component_stock}, ${online_component_packing}</td>
+                                <td>-</td>
+                                <td>${digi_key}</td>
+                                <td>${digi_key_price}</td>
+                                <td>${digi_key_price}</td>
+                                <td>${digi_key_price}</td>
+                                <td><input type="text" value="" name="note" id="note"></td>
+                            </tr>
+                        `;
+                        $('#dom-details').append(selectedData);
 
-                $(".loading").hide();
+                        $(".loading").hide();
+                    })
+                    .catch((err) => {
+                        console.error('Error checking existence:', err);
+                    });
+
+
             });
 
             // Remove row functionality
@@ -417,9 +432,30 @@
             });
         }
 
+        function checkExit(query) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "{{ url('bom/exit') }}/" + query,
+                    type: 'GET',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        resolve(data.Data); // Resolve the promise with the returned data
+                    },
+                    error: function(err) {
+                        reject(err); // Reject the promise on error
+                    }
+                });
+            });
+        }
+
+
         $("body").on("click", "#submit", function(e) {
             e.preventDefault();
 
+            $("#submit").prop("disabled", true);
             $(".loading").show();
             // Validation logic
 
@@ -433,7 +469,7 @@
 
             $('#dom-details tr').each(function() {
                 let isChecked = $(this).find('.row-checkbox').is(':checked');
-
+                console.log(isChecked);
                 if (isChecked) {
 
                     productData.push({
@@ -461,30 +497,35 @@
                     });
                 }
             });
-
+            if (productData.length == 0) {
+                alert('Select row first!');
+            }
+            console.log(productData);
             $.ajax({
                 url: "{{url('bom/store')}}", // Laravel route
                 type: "POST",
                 headers: {
                     "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
                 },
-                data: productData,
-                processData: false, // Important for file uploads
-                contentType: false, // Important for file uploads
+                data: JSON.stringify(productData),
+                processData: true,
+                contentType: 'application/json',
                 dataType: "json",
                 success: function(data) {
                     if (data.Success) {
                         alert(data.Message);
                         $(".loading").hide();
-                        $("#submit").prop("disabled", true);
+                        $("#submit").prop("disabled", false);
                         $('#dom-details').empty();
                     } else {
                         alert(data.Message);
                         $(".loading").hide();
+                        $("#submit").prop("disabled", false);
                     }
                 },
                 error: function(xhr, status, e) {
                     alert("An error occurred:");
+                    $("#submit").prop("disabled", false);
                     $(".loading").hide();
                 },
             });

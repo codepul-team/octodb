@@ -26,4 +26,5 @@ Route::group(['prefix' => 'bom'], function () {
     Route::get('/', [BomController::class, 'index']);
     Route::get('search-mpn', [BomController::class, 'searchMpn']);
     Route::post('store', [BomController::class, 'store']);
+    Route::get('exit/{query}', [BomController::class, 'checkExit']);
 });
