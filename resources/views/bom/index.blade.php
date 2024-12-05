@@ -161,62 +161,81 @@
                 transform: rotate(360deg);
             }
         }
+        th {
+            white-space: nowrap; /* Prevents text wrapping */
+            text-align: center;  /* Centers the text */
+            vertical-align: middle; /* Aligns text vertically */
+        }
+        th {
+            border: 2px solid black; /* Black border for column separation */
+        }
+
+        th:last-child {
+            border-right: none; /* Remove border from the last column */
+        }
     </style>
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" />
 </head>
 
-<body>
+<body style="background-color: aliceblue">
     <div class="loading" style="display: none;">Loading&#8230;</div>
     <div class="container-fluid mt-4">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label class="form-label">Query</label>
-                    <input type="text" class="form-control typeahead" placeholder="Search MPN or SKU">
+            {{--<div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">Query</label>
+                        <input type="text" class="form-control typeahead" placeholder="Search MPN or SKU">
+                    </div>
+                </div>
+            </div>--}}
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-3">
+                <div class="form-group position-relative">
+                    <label for="query" class="form-label fw-bold">Search Query</label>
+                    <input type="text" id="query" class="form-control typeahead rounded-pill px-4 shadow-sm" placeholder="Search MPN or SKU">
                 </div>
             </div>
         </div>
-        <div class="row mt-3">
+        <div class="row mt-5">
             <div class="col-md-12">
                 <div class="table-responsive">
-                    <table style="min-height: 200px;" class="table table-striped table-hover">
+                    <table style="min-height: 200px;background-color: white" class="table table-striped table-hover">
                         <thead>
-                            <tr class="table-primary">
-                                <th>Action</th>
-                                <th>Sr.</th>
-                                <th>Query</th>
-                                <th>Qty</th>
-                                <th>Matches</th>
-                                <th>Part</th>
-                                <th>Part Description</th>
-                                <th>Description</th>
-                                <th>Schematic Reference</th>
-                                <th>Internal Part Number</th>
-                                <th>Lifecycle</th>
-                                <th>Lead Time</th>
-                                <th>RoHS</th>
-                                <th>Digi-Key</th>
-                                <th>Mouser</th>
-                                <th>Newark</th>
-                                <th>Onlinecomponent</th>
-                                <th>RS Components</th>
-                                <th>Distributor/SKU</th>
-                                <th>Unit Price</th>
-                                <th>Line Total</th>
-                                <th>Batch Total</th>
-                                <th>Notes</th>
+                            <tr class="table-primary sticky-top">
+                                <th scope="col" class="w-auto text-nowrap">Action</th>
+                                <th scope="col" class="w-auto text-nowrap">Sr.</th>
+                                <th scope="col" class="w-auto text-nowrap">Query</th>
+                                <th scope="col" class="w-auto text-nowrap">Qty</th>
+                                <th scope="col" class="w-auto text-nowrap">Matches</th>
+                                <th scope="col" class="w-auto text-nowrap">Part</th>
+                                <th scope="col" class="w-auto text-nowrap">Part Description</th>
+                                <th scope="col" class="w-auto text-nowrap">Description</th>
+                                <th scope="col" class="w-auto text-nowrap">Schematic Reference</th>
+                                <th scope="col" class="w-auto text-nowrap">Internal Part Number</th>
+                                <th scope="col" class="w-auto text-nowrap">Lifecycle</th>
+                                <th scope="col" class="w-auto text-nowrap">Lead Time</th>
+                                <th scope="col" class="w-auto text-nowrap">RoHS</th>
+                                <th scope="col" class="w-auto text-nowrap">Digi-Key</th>
+                                <th scope="col" class="w-auto text-nowrap">Mouser</th>
+                                <th scope="col" class="w-auto text-nowrap">Newark</th>
+                                <th scope="col" class="w-auto text-nowrap">Onlinecomponent</th>
+                                <th scope="col" class="w-auto text-nowrap">RS Components</th>
+                                <th scope="col" class="w-auto text-nowrap">Distributor/SKU</th>
+                                <th scope="col" class="w-auto text-nowrap">Unit Price</th>
+                                <th scope="col" class="w-auto text-nowrap">Line Total</th>
+                                <th scope="col" class="w-auto text-nowrap">Batch Total</th>
+                                <th scope="col" class="w-auto text-nowrap">Notes</th>
                             </tr>
                         </thead>
                         <tbody id="dom-details"></tbody>
                     </table>
                 </div>
             </div>
-            <div class="col-md-12 mt-2">
-                <div class="form-group text-center">
-                    <button id="submit" class="btn btn-primary p-2" style="width: 20%;
-    height: 60px;
-    font-weight: bold;
-    font-size: 20px;">Save Data</button>
+            <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                    <button id="submit" class="btn btn-primary px-5 py-3 fw-bold fs-5">
+                        Save Data
+                    </button>
                 </div>
             </div>
         </div>
